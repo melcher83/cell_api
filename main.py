@@ -1,3 +1,5 @@
+#automated cell metric gathering for Peplink modems using API
+
 import keyboard
 import requests
 from requests.auth import HTTPBasicAuth
@@ -22,14 +24,14 @@ if __name__ == '__main__':
     query={'action':'add','name':'client 1','scope':'api'}
 
     response=peplink.post(url+'auth.client',params=query,verify=False,auth=HTTPBasicAuth(username, password))
-    #print(response.json())
+
     x=response.json()['response']['clientId']
     y=response.json()['response']['clientSecret']
-    #print(x)
+
     query={'clientId':x,'clientSecret':y}
 
     response=peplink.post(url+'auth.token.grant',params=query,verify=False)
-    #print(response.json())
+
 
     a_token=response.json()['response']['accessToken']
     my_headers = {'token': x}
