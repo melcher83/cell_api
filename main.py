@@ -1,39 +1,24 @@
-# This is a sample Python script.
-import json
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
+import keyboard
 import requests
 from requests.auth import HTTPBasicAuth
 import time
-
 requests.urllib3.disable_warnings()
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-
-    url='https://192.168.50.1/api/'
+    #Parameters
+    url='https://192.168.50.1/api/' #'https://<ip address>/api/'
     username='admin'
     password='Private123'
-    timeout = 300
-    timeout_start = time.time()
+    timeout = 60 #how long script will run in seconds
+    interval=15  #how often script will poll data in seconds
+
+    #setup API Access
     query = {'username': username, 'password': password}
     peplink = requests.Session()
     response = peplink.post(url + 'login', params=query,verify=False)
-    #print(response.json())
 
-    # my_headers={'token':'3ed00898f47a4e40753838c8eda69a62','Cookie':'bauth=usBg7D8wVdJrgDiFUOB8VzSeaPmRZMdifQymtwLfLvFT2'}
-    # # print request object
-    #print(response.json())
-    #
-    #
-    #response = requests.get(url+'status.wan.connection',auth=HTTPBasicAuth(username,password) , verify=False)
-    #
-    # # print request object
-    # print(response.json())
     query={'action':'add','name':'client 1','scope':'api'}
 
     response=peplink.post(url+'auth.client',params=query,verify=False,auth=HTTPBasicAuth(username, password))
@@ -54,9 +39,14 @@ if __name__ == '__main__':
     rsrp=[]
     rsrq=[]
 
+    timeout_start = time.time()
+    # Gather Data
     while time.time() < timeout_start +timeout:
         test = 0
         if test == 5:
+            break
+
+        if keyboard.is_pressed('q'):
             break
         test -= 1
         response = peplink.get(url + 'status.wan.connection', headers=my_headers)
@@ -65,21 +55,20 @@ if __name__ == '__main__':
         rsrp.append(response.json()['response']['2']['cellular']['band'][0]['signal']['rsrp'])
         rsrq.append(response.json()['response']['2']['cellular']['band'][0]['signal']['rsrq'])
         print(str(round(time.time()-(timeout_start+timeout)))+' seconds remaining')
-        time.sleep(15)
-
-
-    # response=peplink.get(url+'status.wan.connection',headers=my_headers)
-    # print(response.json())
+        time.sleep(interval)
 
 
 
+
+
+    #remove API Access
     query={'action':'remove','clientId':x}
 
 
 
 
     response=peplink.post(url+'auth.client',params=query,verify=False)
-    #print(response.json())
+#Process Data
 #=============================================================
     sum=0
 
@@ -122,10 +111,10 @@ if __name__ == '__main__':
         i = i + 1
 
     rsrq_avg = sum / len(rsrq)
+#Display Data
+    print('RSSI AVG: '+ str(rssi_avg) + '  ' + str(len(rsrq)) + ' samples')
+    print('SINR AVG: ' + str(sinr_avg)+ '  ' + str(len(rsrq)) + ' samples')
+    print('RSRP AVG: ' + str(rsrp_avg)+ '  ' + str(len(rsrq)) + ' samples')
+    print('RSRQ AVG: ' + str(rsrq_avg)+ '  ' + str(len(rsrq)) + ' samples')
 
-    print('RSSI AVG: '+ str(rssi_avg))
-    print('SINR AVG: ' + str(sinr_avg))
-    print('RSRP AVG: ' + str(rsrp_avg))
-    print('RSRQ AVG: ' + str(rsrq_avg))
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
