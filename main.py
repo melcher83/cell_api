@@ -13,7 +13,7 @@ if __name__ == '__main__':
     url='https://192.168.50.1/api/' #'https://<ip address>/api/'
     username='admin'
     password='Private123'
-    timeout = 60 #how long script will run in seconds
+    timeout = 600 #how long script will run in seconds
     interval=15  #how often script will poll data in seconds
 
     #setup API Access
