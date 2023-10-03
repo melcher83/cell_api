@@ -9,13 +9,13 @@ requests.urllib3.disable_warnings()
 
 
 if __name__ == '__main__':
-
+    #print(sys.argv[0])
     #Parameters
-    url='https://' +argv[0] + '/api/' #'https://<ip address>/api/'
-    username=sys.argv[1]
-    password=sys.argv[2]
-    timeout = sys.argv[3] #how long script will run in seconds
-    interval=sys.argv[4]  #how often script will poll data in seconds
+    url='https://' + sys.argv[1] + '/api/' #'https://<ip address>/api/'
+    username=sys.argv[2]
+    password=sys.argv[3]
+    timeout = sys.argv[4] #how long script will run in seconds
+    interval=sys.argv[5]  #how often script will poll data in seconds
 
     #setup API Access
     query = {'username': username, 'password': password}
