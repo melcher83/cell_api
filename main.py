@@ -4,17 +4,18 @@ import keyboard
 import requests
 from requests.auth import HTTPBasicAuth
 import time
+import sys
 requests.urllib3.disable_warnings()
 
 
 if __name__ == '__main__':
 
     #Parameters
-    url='https://192.168.50.1/api/' #'https://<ip address>/api/'
-    username='admin'
-    password='Private123'
-    timeout = 600 #how long script will run in seconds
-    interval=15  #how often script will poll data in seconds
+    url='https://' +argv[0] + '/api/' #'https://<ip address>/api/'
+    username=sys.argv[1]
+    password=sys.argv[2]
+    timeout = sys.argv[3] #how long script will run in seconds
+    interval=sys.argv[4]  #how often script will poll data in seconds
 
     #setup API Access
     query = {'username': username, 'password': password}
