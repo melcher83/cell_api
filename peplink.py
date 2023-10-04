@@ -24,6 +24,7 @@ if __name__ == '__main__':
 
     query={'action':'add','name':'client 1','scope':'api'}
 
+    #authentication
     response=peplink.post(url+'auth.client',params=query,verify=False,auth=HTTPBasicAuth(username, password))
 
     x=response.json()['response']['clientId']
@@ -37,6 +38,7 @@ if __name__ == '__main__':
     a_token=response.json()['response']['accessToken']
     my_headers = {'token': x}
 
+    #variables
     rssi=[]
     sinr=[]
     rsrp=[]
