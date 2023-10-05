@@ -17,10 +17,13 @@ if __name__ == '__main__':
     timeout = int(sys.argv[4]) #how long script will run in seconds
     interval=int(sys.argv[5])  #how often script will poll data in seconds
 
+
+
     #setup API Access
     query = {'username': username, 'password': password}
     peplink = requests.Session()
     response = peplink.post(url + 'login', params=query,verify=False)
+
 
     query={'action':'add','name':'client 1','scope':'api'}
 
@@ -45,6 +48,8 @@ if __name__ == '__main__':
     rsrq=[]
 
     timeout_start = time.time()
+    response = peplink.get(url + 'status.wan.connection', headers=my_headers)
+    #print(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal'])
     # Gather Data
     while time.time() < timeout_start +timeout:
         test = 0
@@ -55,23 +60,24 @@ if __name__ == '__main__':
             break
         test -= 1
         response = peplink.get(url + 'status.wan.connection', headers=my_headers)
-        rssi.append(response.json()['response']['2']['cellular']['band'][0]['signal']['rssi'])
-        sinr.append(response.json()['response']['2']['cellular']['band'][0]['signal']['sinr'])
-        rsrp.append(response.json()['response']['2']['cellular']['band'][0]['signal']['rsrp'])
-        rsrq.append(response.json()['response']['2']['cellular']['band'][0]['signal']['rsrq'])
+        rssi.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['rssi'])
+        sinr.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['sinr'])
+        rsrp.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['rsrp'])
+        rsrq.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['rsrq'])
         print(str(round(time.time()-(timeout_start+timeout)))+' seconds remaining')
         time.sleep(interval)
 
-
-
-
+    response = peplink.get(url + 'info.location', headers=my_headers)
+    latitude=response.json()['response']['location']['latitude']
+    longitude=response.json()['response']['location']['longitude']
+    elevation = response.json()['response']['location']['altitude']
 
     #remove API Access
     query={'action':'remove','clientId':x}
 
-
-
-
+#
+#
+#
     response=peplink.post(url+'auth.client',params=query,verify=False)
 #Process Data
 #=============================================================
@@ -121,5 +127,6 @@ if __name__ == '__main__':
     print('SINR AVG: ' + str(sinr_avg)+ '  ' + str(len(rsrq)) + ' samples')
     print('RSRP AVG: ' + str(rsrp_avg)+ '  ' + str(len(rsrq)) + ' samples')
     print('RSRQ AVG: ' + str(rsrq_avg)+ '  ' + str(len(rsrq)) + ' samples')
-
-
+    print('Latitude: ' + str(latitude) + "     Longitude:  " + str(longitude) + "    Elevation:  " + str(elevation))
+#
+#
