@@ -5,7 +5,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 import time
 import sys
+from openpyxl import Workbook
 requests.urllib3.disable_warnings()
+import datetime
 
 
 if __name__ == '__main__':
@@ -16,8 +18,15 @@ if __name__ == '__main__':
     password=sys.argv[3]
     timeout = int(sys.argv[4]) #how long script will run in seconds
     interval=int(sys.argv[5])  #how often script will poll data in seconds
+    WORKSHEET=(sys.argv[6])
 
 
+    filename= 'cell_data.xlsx'
+
+    workbook = Workbook()
+
+    sheet = workbook.active
+    sheet.title = WORKSHEET
 
     #setup API Access
     query = {'username': username, 'password': password}
@@ -46,10 +55,19 @@ if __name__ == '__main__':
     sinr=[]
     rsrp=[]
     rsrq=[]
+    _time=[]
+
+    sheet['A1'] = 'RSSI'
+    sheet['B1'] = 'SINR'
+    sheet['C1'] = 'RSRP'
+    sheet['D1'] = 'RSRQ'
+    sheet['E1'] = 'TIME'
+
+    row=2
 
     timeout_start = time.time()
-    response = peplink.get(url + 'status.wan.connection', headers=my_headers)
-    #print(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal'])
+    response = peplink.get(url + 'status.wan.connection', headers=my_headers,verify=False)
+    print(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal'])
     # Gather Data
     while time.time() < timeout_start +timeout:
         test = 0
@@ -59,18 +77,26 @@ if __name__ == '__main__':
         if keyboard.is_pressed('q'):
             break
         test -= 1
-        response = peplink.get(url + 'status.wan.connection', headers=my_headers)
-        rssi.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['rssi'])
-        sinr.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['sinr'])
-        rsrp.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['rsrp'])
-        rsrq.append(response.json()['response']['2']['cellular']['rat'][0]['band'][0]['signal']['rsrq'])
+        now=time.ctime()
+        _time.append(now)
+        response = peplink.get(url + 'status.wan.connection', headers=my_headers,verify=False)
+        # rssi.append(response.json()['response']['3']['cellular']['rat'][1]['band'][0]['signal']['rssi'])
+        # sheet['A' + str(row)]=rssi[-1]
+        sinr.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['sinr'])
+        sheet['B' + str(row)] = sinr[-1]
+        rsrp.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['rsrp'])
+        sheet['C' + str(row)] = rsrp[-1]
+        rsrq.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['rsrq'])
+        sheet['D' + str(row)] = rsrq[-1]
+        sheet['E' + str(row)] = _time[-1]
         print(str(round(time.time()-(timeout_start+timeout)))+' seconds remaining')
+        row=row+1
         time.sleep(interval)
 
-    response = peplink.get(url + 'info.location', headers=my_headers)
-    latitude=response.json()['response']['location']['latitude']
-    longitude=response.json()['response']['location']['longitude']
-    elevation = response.json()['response']['location']['altitude']
+    # response = peplink.get(url + 'info.location', headers=my_headers)
+    # latitude=response.json()['response']['location']['latitude']
+    # longitude=response.json()['response']['location']['longitude']
+    # elevation = response.json()['response']['location']['altitude']
 
     #remove API Access
     query={'action':'remove','clientId':x}
@@ -81,15 +107,15 @@ if __name__ == '__main__':
     response=peplink.post(url+'auth.client',params=query,verify=False)
 #Process Data
 #=============================================================
-    sum=0
-
-    i=0
-
-    while i<len(rssi):
-        sum=sum+rssi[i]
-        i=i+1
-
-    rssi_avg=sum/len(rssi)
+    # sum=0
+    #
+    # i=0
+    #
+    # while i<len(rssi):
+    #     sum=sum+rssi[i]
+    #     i=i+1
+    #
+    # rssi_avg=sum/len(rssi)
 #============================================================
     sum = 0
 
@@ -123,10 +149,12 @@ if __name__ == '__main__':
 
     rsrq_avg = sum / len(rsrq)
 #Display Data
-    print('RSSI AVG: '+ str(rssi_avg) + '  ' + str(len(rsrq)) + ' samples')
+   # print('RSSI AVG: '+ str(rssi_avg) + '  ' + str(len(rsrq)) + ' samples')
     print('SINR AVG: ' + str(sinr_avg)+ '  ' + str(len(rsrq)) + ' samples')
     print('RSRP AVG: ' + str(rsrp_avg)+ '  ' + str(len(rsrq)) + ' samples')
     print('RSRQ AVG: ' + str(rsrq_avg)+ '  ' + str(len(rsrq)) + ' samples')
-    print('Latitude: ' + str(latitude) + "     Longitude:  " + str(longitude) + "    Elevation:  " + str(elevation))
-#
-#
+    #print('Latitude: ' + str(latitude) + "     Longitude:  " + str(longitude) + "    Elevation:  " + str(elevation))
+
+    workbook.save(filename=filename)
+
+
