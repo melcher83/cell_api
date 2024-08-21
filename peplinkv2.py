@@ -56,12 +56,16 @@ if __name__ == '__main__':
     rsrp=[]
     rsrq=[]
     _time=[]
+    _utran=[]
+    _cellid=[]
 
     sheet['A1'] = 'RSSI'
     sheet['B1'] = 'SINR'
     sheet['C1'] = 'RSRP'
     sheet['D1'] = 'RSRQ'
-    sheet['E1'] = 'TIME'
+    sheet['E1'] = 'UTRAN'
+    sheet['F1'] = 'CELLID'
+    sheet['G1'] = 'TIME'
 
     row=2
 
@@ -80,15 +84,21 @@ if __name__ == '__main__':
         now=time.ctime()
         _time.append(now)
         response = peplink.get(url + 'status.wan.connection', headers=my_headers,verify=False)
-        # rssi.append(response.json()['response']['3']['cellular']['rat'][1]['band'][0]['signal']['rssi'])
-        # sheet['A' + str(row)]=rssi[-1]
+        rssi.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['rssi'])
+        sheet['A' + str(row)]=rssi[-1]
         sinr.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['sinr'])
         sheet['B' + str(row)] = sinr[-1]
         rsrp.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['rsrp'])
         sheet['C' + str(row)] = rsrp[-1]
         rsrq.append(response.json()['response']['3']['cellular']['rat'][0]['band'][0]['signal']['rsrq'])
         sheet['D' + str(row)] = rsrq[-1]
-        sheet['E' + str(row)] = _time[-1]
+
+        print(str(response.json()['response']['3']['cellular']['cellTower']['cellUtranId']) + " " + str(response.json()['response']['3']['cellular']['cellTower']['cellId']))
+        _utran.append(response.json()['response']['3']['cellular']['cellTower']['cellUtranId'])
+        sheet['E' + str(row)] = _utran[-1]
+        _cellid.append(response.json()['response']['3']['cellular']['cellTower']['cellId'])
+        sheet['F' + str(row)] = _cellid[-1]
+        sheet['G' + str(row)] = _time[-1]
         print(str(round(time.time()-(timeout_start+timeout)))+' seconds remaining')
         row=row+1
         time.sleep(interval)
@@ -107,15 +117,15 @@ if __name__ == '__main__':
     response=peplink.post(url+'auth.client',params=query,verify=False)
 #Process Data
 #=============================================================
-    # sum=0
-    #
-    # i=0
-    #
-    # while i<len(rssi):
-    #     sum=sum+rssi[i]
-    #     i=i+1
-    #
-    # rssi_avg=sum/len(rssi)
+    sum=0
+
+    i=0
+
+    while i<len(rssi):
+        sum=sum+rssi[i]
+        i=i+1
+
+    rssi_avg=sum/len(rssi)
 #============================================================
     sum = 0
 
@@ -149,7 +159,7 @@ if __name__ == '__main__':
 
     rsrq_avg = sum / len(rsrq)
 #Display Data
-   # print('RSSI AVG: '+ str(rssi_avg) + '  ' + str(len(rsrq)) + ' samples')
+    print('RSSI AVG: '+ str(rssi_avg) + '  ' + str(len(rsrq)) + ' samples')
     print('SINR AVG: ' + str(sinr_avg)+ '  ' + str(len(rsrq)) + ' samples')
     print('RSRP AVG: ' + str(rsrp_avg)+ '  ' + str(len(rsrq)) + ' samples')
     print('RSRQ AVG: ' + str(rsrq_avg)+ '  ' + str(len(rsrq)) + ' samples')
